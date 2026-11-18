@@ -1,0 +1,17 @@
+{
+  "name": "tkdent-voice-reception",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Voice receptionist (Urdu / English / Pashto) for TK Dent \u2014 embeddable widget + zero-dependency API",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/dev.mjs",
+    "test": "node --test test/*.test.mjs",
+    "smoke": "node test/smoke.mjs",
+    "check": "node scripts/selfcheck.mjs"
+  }
+}

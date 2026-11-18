@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TK Dent — Voice receptionist demo</title>
+    <meta name="description" content="Working demo of the TK Dent voice receptionist: Urdu, English and Pashto, booking and clinic hand-off." />
+    <style>
+      :root {
+        --cream: #f6f1e7;
+        --sand: #e9e0cf;
+        --ink: #17181b;
+        --ink-soft: #4b4a46;
+        --gold: #a9853f;
+        --line: rgba(23, 24, 27, 0.12);
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--cream);
+        color: var(--ink);
+        font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; letter-spacing: -0.01em; margin: 0; }
+      a { color: inherit; }
+      .wrap { width: min(1140px, 92vw); margin: 0 auto; }
+
+      nav {
+        position: sticky; top: 0; z-index: 20;
+        backdrop-filter: blur(14px);
+        background: rgba(246, 241, 231, 0.82);
+        border-bottom: 1px solid var(--line);
+      }
+      nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+      .logo { display: flex; align-items: center; gap: 11px; text-decoration: none; }
+      .logo-mark {
+        width: 38px; height: 38px; border: 1px solid var(--gold); border-radius: 50%;
+        display: grid; place-items: center; font-family: Georgia, serif; font-size: 13px; color: var(--gold);
+      }
+      .logo b { font-family: Georgia, serif; font-weight: 500; font-size: 16px; display: block; line-height: 1.1; }
+      .logo span { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
+      .nav-links { display: flex; gap: 26px; font-size: 13px; }
+      .nav-links a { text-decoration: none; color: var(--ink-soft); }
+      .nav-links a:hover { color: var(--ink); }
+      @media (max-width: 760px) { .nav-links { display: none; } }
+
+      .hero { padding: 84px 0 56px; display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 56px; align-items: center; }
+      @media (max-width: 900px) { .hero { grid-template-columns: 1fr; padding: 48px 0 32px; gap: 32px; } }
+      .eyebrow { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; }
+      h1 { font-size: clamp(42px, 6vw, 76px); line-height: 1.02; }
+      h1 em { font-style: italic; color: var(--gold); }
+      .lede { margin: 24px 0 0; font-size: 17px; line-height: 1.65; color: var(--ink-soft); max-width: 46ch; }
+      .cta { display: flex; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 10px; height: 50px; padding: 0 24px;
+        border-radius: 999px; font-size: 14px; text-decoration: none; cursor: pointer;
+        border: 1px solid var(--ink); background: var(--ink); color: var(--cream);
+        transition: transform 0.16s ease, background 0.16s ease;
+      }
+      .btn:hover { transform: translateY(-1px); }
+      .btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+      .btn.ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+      .facts { display: flex; gap: 26px; margin-top: 40px; flex-wrap: wrap; }
+      .facts div b { display: block; font-family: Georgia, serif; font-size: 24px; }
+      .facts div span { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+
+      .portrait {
+        aspect-ratio: 4 / 5; border-radius: 4px; position: relative; overflow: hidden;
+        background:
+          radial-gradient(120% 90% at 20% 10%, #fbf7ef 0%, #e7ddc9 45%, #cdbfa4 100%);
+        border: 1px solid var(--line);
+        display: grid; place-items: center;
+      }
+      .portrait::after {
+        content: ""; position: absolute; inset: 18px; border: 1px solid rgba(169, 133, 63, 0.35);
+      }
+      .portrait p { font-family: Georgia, serif; font-size: 20px; text-align: center; color: #6b6049; max-width: 22ch; line-height: 1.5; padding: 0 24px; }
+
+      section.band { border-top: 1px solid var(--line); padding: 64px 0; }
+      .band h2 { font-size: clamp(28px, 3.4vw, 40px); margin-bottom: 14px; }
+      .band p { color: var(--ink-soft); line-height: 1.7; max-width: 62ch; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px; margin-top: 34px; }
+      .tile { background: #fffdf8; border: 1px solid var(--line); border-radius: 14px; padding: 22px; }
+      .tile h3 { font-size: 18px; margin-bottom: 8px; }
+      .tile p { font-size: 13.5px; margin: 0; }
+      .tile code { font-size: 12px; background: var(--sand); padding: 2px 6px; border-radius: 5px; }
+
+      .steps { counter-reset: s; display: grid; gap: 18px; margin-top: 30px; }
+      .step { display: grid; grid-template-columns: 42px 1fr; gap: 16px; align-items: start; }
+      .step::before {
+        counter-increment: s; content: counter(s);
+        width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+        border: 1px solid var(--gold); color: var(--gold); font-family: Georgia, serif; font-size: 14px;
+      }
+      .step h3 { font-size: 17px; margin-bottom: 4px; }
+      .step p { margin: 0; font-size: 14px; }
+
+      pre {
+        background: #17181b; color: #e7e2d6; padding: 18px 20px; border-radius: 12px;
+        overflow-x: auto; font-size: 12.5px; line-height: 1.6;
+      }
+      footer { border-top: 1px solid var(--line); padding: 30px 0 40px; font-size: 12.5px; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <div class="wrap">
+        <a class="logo" href="#">
+          <span class="logo-mark">TK</span>
+          <span><b>TK Dent</b><span>Dental &amp; Aesthetic</span></span>
+        </a>
+        <div class="nav-links">
+          <a href="#how">How it works</a>
+          <a href="#stack">Stack</a>
+          <a href="#embed">Embed</a>
+          <a href="https://wa.me/923123329479" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="wrap">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">Bani Gala · Islamabad</div>
+          <h1>Dental care that<br />answers <em>on the first ring.</em></h1>
+          <p class="lede">
+            A voice receptionist for TK Dent. Patients talk, she understands Urdu and English,
+            answers in a natural voice, and books the slot while they are still on the page.
+          </p>
+          <div class="cta">
+            <button class="btn" type="button" id="talk">Talk to Ayesha</button>
+            <a class="btn ghost" href="#how">See how it works</a>
+          </div>
+          <div class="facts">
+            <div><b>5.0</b><span>Google rating</span></div>
+            <div><b>3</b><span>Languages</span></div>
+            <div><b>24/7</b><span>Answers</span></div>
+          </div>
+        </div>
+        <div class="portrait">
+          <p>“Assalam o alaikum — appointment book karni hai?”</p>
+        </div>
+      </div>
+    </main>
+
+    <section class="band" id="how">
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p>Press the bubble in the corner and just talk. Everything below is wired up in this demo — no mock screens.</p>
+        <div class="grid">
+          <div class="tile"><h3>Speak or type</h3><p>Tap the mic, speak, and it stops on its own when you finish. Or type — the reply is still spoken.</p></div>
+          <div class="tile"><h3>Natural voice</h3><p>Neural voice for Urdu and English, streamed sentence by sentence so the reply starts in about a second.</p></div>
+          <div class="tile"><h3>Books the slot</h3><p>Checks real availability and writes the appointment, then hands you a WhatsApp confirmation.</p></div>
+          <div class="tile"><h3>Escalates</h3><p>Asks for a human, or mentions bleeding or swelling, and it stops selling and puts the clinic on the line.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="stack">
+      <div class="wrap">
+        <h2>What is running behind it</h2>
+        <p>All free-tier friendly. Swap any piece by changing one environment variable.</p>
+        <div class="steps">
+          <div class="step"><div><h3>Ears — Groq Whisper</h3><p>Speech to text, ~300 ms, 8 audio hours a day free. Falls back to the browser's own recogniser when no key is set.</p></div></div>
+          <div class="step"><div><h3>Brain — Groq gpt-oss-120b</h3><p>Tool calling for availability, booking and hand-off. 1,000 requests a day free.</p></div></div>
+          <div class="step"><div><h3>Voice — Azure Neural</h3><p>ur-PK-UzmaNeural and ps-AF-LatifaNeural, 500k characters a month free, cached so repeats cost nothing.</p></div></div>
+        </div>
+        <pre><code>GET /api/health     which providers are actually configured
+POST /api/chat      SSE stream: delta · tool · card · done
+POST /api/stt       base64 audio -> text
+POST /api/tts       text -> audio/mpeg
+GET  /api/book      next open slots
+POST /api/book      create a booking (for the site's own form)</code></pre>
+      </div>
+    </section>
+
+    <section class="band" id="embed">
+      <div class="wrap">
+        <h2>Adding it to tanveerkhokar.vercel.app</h2>
+        <p>One script tag at the end of <code>&lt;body&gt;</code>. No rebuild of the clinic site, no access to its source needed.</p>
+        <pre><code>&lt;script
+  src="https://tkdent-voice.vercel.app/widget.js"
+  data-api="https://tkdent-voice.vercel.app"
+  data-lang="en"
+  data-langs="ur,en"
+  defer&gt;&lt;/script&gt;</code></pre>
+        <p>Or drive it from an existing button: <code>TKDentVoice.open()</code>, <code>TKDentVoice.ask("book a cleaning")</code>.</p>
+      </div>
+    </section>
+
+    <footer class="wrap">
+      <span>TK Dent · House 34-C, Akram Road, Bani Gala, Islamabad</span>
+      <span>Demo build — not the live clinic site.</span>
+    </footer>
+
+    <script src="/widget.js" data-api="" data-lang="en" data-langs="ur,en" defer></script>
+    <script>
+      document.getElementById('talk').addEventListener('click', () => window.TKDentVoice?.open());
+      // ?voice=1 opens the assistant straight away — handy for demos and screenshots.
+      if (new URLSearchParams(location.search).get('voice') === '1') {
+        window.addEventListener('load', () => setTimeout(() => window.TKDentVoice?.open(), 300));
+      }
+    </script>
+  </body>
+</html>

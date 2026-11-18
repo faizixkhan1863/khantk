@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>TK Dent · Bookings</title>
+    <style>
+      :root {
+        --cream: #f6f1e7;
+        --ink: #17181b;
+        --muted: #6b6a64;
+        --gold: #a9853f;
+        --teal: #0e2521;
+        --line: rgba(23, 24, 27, 0.12);
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--cream); color: var(--ink);
+        font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 22px 32px; border-bottom: 1px solid var(--line);
+      }
+      .brand { display: flex; align-items: center; gap: 12px; }
+      .mark {
+        width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--gold);
+        display: grid; place-items: center; font-family: Georgia, serif; font-size: 13px; color: var(--gold);
+      }
+      .brand b { font-family: Georgia, serif; font-weight: 500; font-size: 16px; display: block; }
+      .brand span { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+      .actions { display: flex; gap: 10px; align-items: center; }
+      button {
+        height: 38px; padding: 0 16px; border-radius: 9px; cursor: pointer; font-size: 13px;
+        border: 1px solid var(--line); background: transparent; color: var(--ink); font-family: inherit;
+      }
+      button.primary { background: var(--teal); color: var(--cream); border-color: var(--teal); }
+      main { padding: 28px 32px 60px; }
+      h1 { font-family: Georgia, serif; font-weight: 500; font-size: 28px; margin: 0 0 6px; }
+      .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+      .stats { display: flex; gap: 28px; margin-bottom: 24px; flex-wrap: wrap; }
+      .stat b { display: block; font-family: Georgia, serif; font-size: 26px; }
+      .stat span { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+      table { width: 100%; border-collapse: collapse; background: #fffdf8; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+      th, td { text-align: left; padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--line); }
+      th { font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: #fbf7ee; }
+      tr:last-child td { border-bottom: 0; }
+      td.ref { font-family: ui-monospace, "SF Mono", monospace; font-size: 12px; color: var(--gold); }
+      td.phone { font-variant-numeric: tabular-nums; }
+      .empty { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+
+      .keybox { max-width: 360px; margin: 80px auto; background: #fffdf8; border: 1px solid var(--line); border-radius: 14px; padding: 26px; }
+      .keybox h2 { font-family: Georgia, serif; font-weight: 500; font-size: 20px; margin: 0 0 6px; }
+      .keybox p { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+      .keybox input {
+        width: 100%; height: 44px; padding: 0 12px; font-size: 14px; border-radius: 9px;
+        border: 1px solid var(--line); background: var(--cream); color: var(--ink); font-family: inherit;
+      }
+      .keybox button { width: 100%; margin-top: 12px; height: 44px; }
+      .error { color: #b3261e; font-size: 13px; margin-top: 10px; }
+      .hidden { display: none; }
+      @media (max-width: 720px) { th, td { padding: 10px 8px; font-size: 12px; } header { padding: 16px; } main { padding: 18px 16px 40px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <span class="mark">TK</span>
+        <span><b>TK Dent</b><span>AI reception · bookings</span></span>
+      </div>
+      <div class="actions">
+        <span id="updated" class="sub" style="margin: 0"></span>
+        <button id="refresh" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main id="app" class="hidden">
+      <h1>Appointments</h1>
+      <p class="sub">Booked by the AI assistant. Newest first. Confirmation happens on WhatsApp.</p>
+      <div class="stats">
+        <div class="stat"><b id="count">0</b><span>Total bookings</span></div>
+        <div class="stat"><b id="today">0</b><span>Today</span></div>
+        <div class="stat"><b id="next">—</b><span>Next appointment</span></div>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Ref</th><th>Name</th><th>Phone</th><th>Treatment</th><th>Date</th><th>Time</th><th>Booked at</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div id="empty" class="empty hidden">No bookings yet.</div>
+    </main>
+
+    <section id="keybox" class="keybox hidden">
+      <h2>Admin key</h2>
+      <p>This page shows patient names and phone numbers, so it needs the clinic key from <code>ADMIN_KEY</code>.</p>
+      <input id="key" type="password" placeholder="Admin key" autocomplete="off" />
+      <button class="primary" id="unlock" type="button">Open</button>
+      <div class="error hidden" id="keyerror">Wrong key.</div>
+    </section>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const KEY_STORAGE = 'tkdent_admin_key';
+
+      function keyFromUrl() {
+        const fromUrl = new URLSearchParams(location.search).get('key');
+        if (fromUrl) localStorage.setItem(KEY_STORAGE, fromUrl);
+        return fromUrl || localStorage.getItem(KEY_STORAGE) || '';
+      }
+
+      function fmt(value) {
+        if (!value) return '';
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+      }
+
+      async function load() {
+        const key = keyFromUrl();
+        if (!key) {
+          $('keybox').classList.remove('hidden');
+          return;
+        }
+
+        const res = await fetch(`/api/bookings?key=${encodeURIComponent(key)}`);
+        if (res.status === 401) {
+          localStorage.removeItem(KEY_STORAGE);
+          $('keybox').classList.remove('hidden');
+          $('keyerror').classList.remove('hidden');
+          return;
+        }
+
+        const data = await res.json();
+        $('keybox').classList.add('hidden');
+        $('app').classList.remove('hidden');
+
+        const rows = data.bookings ?? [];
+        const today = new Date().toISOString().slice(0, 10);
+        const upcoming = rows.filter((r) => r.date >= today).sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+        $('count').textContent = rows.length;
+        $('today').textContent = rows.filter((r) => r.date === today).length;
+        $('next').textContent = upcoming[0] ? `${upcoming[0].date.slice(5)} · ${upcoming[0].time}` : '—';
+        $('updated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+        $('empty').classList.toggle('hidden', rows.length > 0);
+
+        $('rows').innerHTML = rows
+          .map(
+            (r) => `<tr>
+              <td class="ref">${r.ref}</td>
+              <td>${r.name}</td>
+              <td class="phone"><a href="tel:${r.phone}">${r.phone}</a></td>
+              <td>${r.treatment}</td>
+              <td>${r.date}</td>
+              <td>${r.time}</td>
+              <td>${fmt(r.createdAt)}</td>
+            </tr>`,
+          )
+          .join('');
+      }
+
+      $('unlock').addEventListener('click', () => {
+        const value = $('key').value.trim();
+        if (!value) return;
+        localStorage.setItem(KEY_STORAGE, value);
+        $('keyerror').classList.add('hidden');
+        load();
+      });
+
+      $('key').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') $('unlock').click();
+      });
+
+      $('refresh').addEventListener('click', load);
+      load();
+      setInterval(load, 20000);
+    </script>
+  </body>
+</html>
